@@ -27,7 +27,6 @@ jobs:
     - name: Install package and test
       run: |
         make install test clean
-
  deploy_heroku:
    runs-on: ubuntu-latest
    steps:
