@@ -112,3 +112,59 @@ def get_data(self):
     data = data['expeds']
 
     return data
+
+#-------------------------------------------------------------------------------
+# random search
+from sklearn.model_selection import RandomizedSearchCV
+
+params = {'n_estimators' : [100,200,500],
+        'criterion' : ['gini', 'entropy'],
+        'min_samples_split': [2, 3, 5],
+        'max_depth': [5, 10, 25, 50],
+        'min_samples_leaf': [1, 3, 5],
+        'max_features': ["sqrt", "log2"]
+        }
+
+model = RandomForestClassifier()
+
+random_search = RandomizedSearchCV(model,
+                                   cv=5,
+                                   param_distributions=params,
+                                   scoring='accuracy',
+                                   n_jobs=-1,
+                                   verbose=1,
+                                   random_state=1001)
+
+random_search.fit(X_train, y_train)
+
+#-------------------------------------------------------------------------------
+# Debugging with ipdb
+import ipdb; ipdb.set_trace() # insert just after
+
+#-------------------------------------------------------------------------------
+# learning curves
+data_train, data_test = train_test_split(data, test_size=0.3, random_state = 2)
+
+X_test = data_test[['surface']]
+y_test = data_test['price']
+
+learning_curves_elements = pd.DataFrame(columns=['train_score', 'test_score', 'train_size'])
+
+# Training set sizes to loop over
+train_sizes = [50,100,200,300,400,500,600]
+
+for size in train_sizes:
+
+    data_train_sample = data_train.sample(size, random_state = 5)
+
+    X_train = data_train_sample[['surface']]
+    y_train = data_train_sample['price']
+
+    model = LinearRegression().fit(X_train, y_train)
+
+    test_score =   model.score(X_test,y_test)
+    train_score =  model.score(X_train,y_train)
+
+    learning_curves_elements = learning_curves_elements.append({'train_score': train_score,
+                                  'test_score': test_score,
+                                  'train_size': size}, ignore_index=True)
